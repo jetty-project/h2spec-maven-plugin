@@ -25,6 +25,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
+import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
+import org.codehaus.plexus.util.xml.Xpp3DomWriter;
+import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
@@ -40,6 +44,8 @@ import org.testcontainers.utility.DockerImageName;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -130,6 +136,9 @@ public class Http2SpecMojo extends AbstractMojo
 
     @Parameter(defaultValue = "${project}", readonly = true)
     private MavenProject project;
+
+    @Parameter(property = "h2spec.junitClassName", defaultValue = "h2spec")
+    private String junitClassName;
 
     @SuppressWarnings("unchecked")
     private ClassLoader getClassLoader() throws MojoExecutionException
@@ -328,6 +337,7 @@ public class Http2SpecMojo extends AbstractMojo
 
                     h2spec.withCommand( command );
                     h2spec.start();
+                    cleanupJunitReportFile(junitFile);
                     allFailures =
                         H2SpecTestSuite.parseReports( getLog(), junitFile.getParentFile(), new HashSet<>(excludeSpecs) );
                 }
@@ -371,6 +381,27 @@ public class Http2SpecMojo extends AbstractMojo
             {
                 runner.interrupt();
             }
+        }
+    }
+
+    private void cleanupJunitReportFile(File junitFile)
+        throws IOException, XmlPullParserException
+    {
+        Xpp3Dom dom;
+        try(Reader reader = Files.newBufferedReader( junitFile.toPath() ))
+        {
+            dom = Xpp3DomBuilder.build( reader);
+            for (Xpp3Dom testsuite : dom.getChildren())
+            {
+                for (Xpp3Dom testcase : testsuite.getChildren())
+                {
+                    testcase.setAttribute( "name", testcase.getAttribute("package") );
+                }
+            }
+        }
+        try (Writer writer = Files.newBufferedWriter( junitFile.toPath() ))
+        {
+            Xpp3DomWriter.write(writer, dom);
         }
     }
 
