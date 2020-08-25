@@ -25,6 +25,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.Xpp3DomWriter;
@@ -312,7 +313,7 @@ public class Http2SpecMojo extends AbstractMojo
                 String command = String.format( "-h %s -p %d -j %s -o %d --max-header-length %d",
                                                 "host.testcontainers.internal",
                                                 port,
-                                                junitFile.getAbsolutePath(),
+                                                "./junit.xml", // junitFile.getAbsolutePath(),
                                                 timeout,
                                                 maxHeaderLength );
                 if ( verbose )
@@ -323,10 +324,10 @@ public class Http2SpecMojo extends AbstractMojo
                 getLog().info( "running image: " + imageName + " with command: " + command);
 
                 Testcontainers.exposeHostPorts(port);
-                //PathUtils
+
                 try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) )
-                            .withFileSystemBind(outputDirectory.getAbsolutePath(),
-                                                outputDirectory.getAbsolutePath(), BindMode.READ_WRITE))
+                            //.withFileSystemBind(outputDirectory.getAbsolutePath(), outputDirectory.getAbsolutePath(), BindMode.READ_WRITE)
+                )
                 {
                     if(verbose)
                     {
@@ -338,6 +339,7 @@ public class Http2SpecMojo extends AbstractMojo
 
                     h2spec.withCommand( command );
                     h2spec.start();
+                    h2spec.copyFileFromContainer("./junit.xml", junitFile.getAbsolutePath());
                 }
                 // after container stop to be sure file flushed
                 cleanupJunitReportFile(junitFile);
@@ -394,10 +396,15 @@ public class Http2SpecMojo extends AbstractMojo
             dom = Xpp3DomBuilder.build( reader);
             for (Xpp3Dom testsuite : dom.getChildren())
             {
+                Float time = (float) 0;
                 for (Xpp3Dom testcase : testsuite.getChildren())
                 {
+                    time += Float.parseFloat(testcase.getAttribute( "time" ));
                     testcase.setAttribute( "name", testcase.getAttribute("package") );
+                    testcase.setAttribute( "classname",
+                                           StringUtils.replace( testcase.getAttribute( "classname"), ' ', '.' ) );
                 }
+                testsuite.setAttribute( "time", Float.toString( time ) );
             }
         }
         try (Writer writer = Files.newBufferedWriter( junitFile.toPath() ))
