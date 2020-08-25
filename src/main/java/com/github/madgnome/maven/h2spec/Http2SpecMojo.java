@@ -337,11 +337,11 @@ public class Http2SpecMojo extends AbstractMojo
 
                     h2spec.withCommand( command );
                     h2spec.start();
-                    cleanupJunitReportFile(junitFile);
-                    allFailures =
-                        H2SpecTestSuite.parseReports( getLog(), junitFile.getParentFile(), new HashSet<>(excludeSpecs) );
                 }
-
+                // after container stop to be sure file flushed
+                cleanupJunitReportFile(junitFile);
+                allFailures =
+                    H2SpecTestSuite.parseReports( getLog(), junitFile.getParentFile(), new HashSet<>(excludeSpecs) );
 
                 allFailures.forEach(failure ->
                 {
