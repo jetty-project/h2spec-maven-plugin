@@ -307,6 +307,7 @@ public class Http2SpecMojo extends AbstractMojo
                 }
 
                 File junitFile = new File(reportsDirectory, junitFileName);
+                junitFile.createNewFile();
                 String imageName = h2specContainerName + ":" + h2specVersion;
                 String command = String.format( "-h %s -p %d -j %s -o %d --max-header-length %d",
                                                 "host.testcontainers.internal",
