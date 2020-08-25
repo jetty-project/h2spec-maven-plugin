@@ -42,6 +42,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.output.WaitingConsumer;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -76,6 +77,10 @@ import static org.testcontainers.containers.output.OutputFrame.OutputType.STDOUT
         requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true)
 public class Http2SpecMojo extends AbstractMojo
 {
+    static
+    {
+        TestcontainersConfiguration.getInstance().getProperties().setProperty( "transport.type","httpclient5" );
+    }
 
     /**
      * The port on which the Server will listen.
@@ -326,7 +331,7 @@ public class Http2SpecMojo extends AbstractMojo
                 Testcontainers.exposeHostPorts(port);
 
                 try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) )
-                            //.withFileSystemBind(outputDirectory.getAbsolutePath(), outputDirectory.getAbsolutePath(), BindMode.READ_WRITE)
+                            //.withFileSystemBind(reportsDirectory.getAbsolutePath(), reportsDirectory.getAbsolutePath(), BindMode.READ_WRITE)
                 )
                 {
                     if(verbose)
@@ -335,8 +340,6 @@ public class Http2SpecMojo extends AbstractMojo
                     }
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy().withStartLine( "Finished in " ) );
                     h2spec.setPortBindings( Arrays.asList( Integer.toString( port ) ) );
-
-
                     h2spec.withCommand( command );
                     h2spec.start();
                     h2spec.copyFileFromContainer("./junit.xml", junitFile.getAbsolutePath());
