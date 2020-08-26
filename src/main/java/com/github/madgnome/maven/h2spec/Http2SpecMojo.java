@@ -181,7 +181,7 @@ public class Http2SpecMojo extends AbstractMojo
             return;
         }
 
-        final AtomicReference<Exception> error = new AtomicReference<>();
+        final AtomicReference<Throwable> error = new AtomicReference<>();
         Thread runner = null;
         try
         {
@@ -210,7 +210,7 @@ public class Http2SpecMojo extends AbstractMojo
                     Method main = clazz.getMethod("main", String[].class);
                     main.invoke(null, (Object) new String[] {String.valueOf(port) });
                 }
-                catch (Exception e)
+                catch (Throwable e)
                 {
                     error.set(e);
                 } finally
@@ -244,8 +244,7 @@ public class Http2SpecMojo extends AbstractMojo
                 {
                     throw new MojoExecutionException("Unable to start server", cause);
                 }
-                Socket socket = new Socket();
-                try
+                try (Socket socket = new Socket())
                 {
                     socket.connect(new InetSocketAddress(host, port));
                     break;
@@ -260,17 +259,6 @@ public class Http2SpecMojo extends AbstractMojo
                     {
                         // restore interrupt state
                         Thread.currentThread().interrupt();
-                    }
-                }
-                finally
-                {
-                    try
-                    {
-                        socket.close();
-                    }
-                    catch (IOException e)
-                    {
-                        // ignore
                     }
                 }
                 if (i == 9)
@@ -330,9 +318,7 @@ public class Http2SpecMojo extends AbstractMojo
 
                 Testcontainers.exposeHostPorts(port);
 
-                try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) )
-                            //.withFileSystemBind(reportsDirectory.getAbsolutePath(), reportsDirectory.getAbsolutePath(), BindMode.READ_WRITE)
-                )
+                try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) ) )
                 {
                     if(verbose)
                     {
@@ -416,31 +402,16 @@ public class Http2SpecMojo extends AbstractMojo
         }
     }
 
-    private Integer findRandomOpenPortOnAllLocalInterfaces()
+    private int findRandomOpenPortOnAllLocalInterfaces()
     {
-        ServerSocket socket = null;
-        try
+
+        try(ServerSocket socket = new ServerSocket(0))
         {
-            socket = new ServerSocket(0);
             return socket.getLocalPort();
         }
         catch (IOException e)
         {
             throw new RuntimeException("Can't find an open socket", e);
-        }
-        finally
-        {
-            if (socket != null)
-            {
-                try
-                {
-                    socket.close();
-                }
-                catch (IOException e)
-                {
-                    System.err.println("Can't close server socket.");
-                }
-            }
         }
     }
 
