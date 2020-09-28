@@ -33,7 +33,7 @@
           <h2specVersion>@h2specVersion@</h2specVersion>
           <h2specContainerName>@h2specContainerName@</h2specContainerName>
           <mainClass>org.eclipse.jetty.http2.server.H2SpecServer</mainClass>
-          <verbose>true</verbose>
+          <verbose>false</verbose>
           <reportsDirectory>${project.build.directory}/h2spec-reports</reportsDirectory>
           <junitPackage>org.eclipse.jetty.h2spec</junitPackage>
         </configuration>

@@ -38,6 +38,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.FrameConsumerResultCallback;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.output.WaitingConsumer;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
@@ -334,7 +335,18 @@ public class Http2SpecMojo extends AbstractMojo
 
                 try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) ) )
                 {
-                    h2spec.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(getClass().getName())));
+//                    if(verbose)
+//                    {
+//                        h2spec.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(getClass().getName())));
+//                    }
+                    h2spec.withLogConsumer(new ToStringConsumer(){
+                        @Override
+                        public void accept( OutputFrame outputFrame )
+                        {
+                            super.accept( outputFrame );
+                            getLog().info( toUtf8String() );
+                        }
+                    });
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy().withStartLine( "Finished in " ) );
                     h2spec.setPortBindings( Arrays.asList( Integer.toString( port ) ) );
                     h2spec.withCommand( command );
