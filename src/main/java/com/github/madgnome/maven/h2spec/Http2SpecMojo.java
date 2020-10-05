@@ -20,6 +20,7 @@ import com.github.dockerjava.api.command.LogContainerCmd;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -35,9 +36,11 @@ import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.output.BaseConsumer;
 import org.testcontainers.containers.output.FrameConsumerResultCallback;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
+import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.output.WaitingConsumer;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.utility.DockerImageName;
@@ -58,7 +61,10 @@ import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.CharacterIterator;
 import java.text.DecimalFormat;
+import java.text.StringCharacterIterator;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -152,6 +158,12 @@ public class Http2SpecMojo extends AbstractMojo
 
     @Parameter(property = "h2spec.skipNoDockerAvailable", defaultValue = "false")
     private boolean skipNoDockerAvailable;
+
+    /**
+     * maximum timeout in seconds to run the tests
+     */
+    @Parameter(property = "h2spec.testTimeout", defaultValue = "60")
+    private int testTimeout = 60;
 
     @SuppressWarnings("unchecked")
     private ClassLoader getClassLoader() throws MojoExecutionException
@@ -334,11 +346,9 @@ public class Http2SpecMojo extends AbstractMojo
 
                 try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) ) )
                 {
-                    if(verbose)
-                    {
-                        h2spec.withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger(getClass().getName())));
-                    }
-                    h2spec.setWaitStrategy(new LogMessageWaitStrategy().withStartLine( "Finished in " ) );
+                    h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
+                    h2spec.setWaitStrategy(new LogMessageWaitStrategy().withStartLine("Finished in ")
+                                               .withStartupTimeout(Duration.ofSeconds(testTimeout)));
                     h2spec.setPortBindings( Arrays.asList( Integer.toString( port ) ) );
                     h2spec.withCommand( command );
                     h2spec.start();
@@ -392,6 +402,31 @@ public class Http2SpecMojo extends AbstractMojo
             {
                 runner.interrupt();
             }
+        }
+    }
+
+    private class MojoLogConsumer extends ToStringConsumer
+    {
+        // BaseConsumer<MojoLogConsumer>
+        private StringBuilder buffer = new StringBuilder();
+
+        private Log log;
+
+        public MojoLogConsumer( Log log )
+        {
+            this.log = log;
+        }
+
+        @Override
+        public void accept( OutputFrame outputFrame )
+        {
+//            if(outputFrame.getBytes()==null) {
+//                return;
+//            }
+//            String frame = new String(outputFrame.getBytes());
+//            getLog().info(frame);
+            super.accept(outputFrame);
+            getLog().info(toUtf8String());
         }
     }
 
