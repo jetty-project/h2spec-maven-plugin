@@ -98,7 +98,7 @@ public class Http2SpecMojo extends AbstractMojo
     /**
      * Timeout in seconds
      */
-    @Parameter(property="h2spec.timeout", defaultValue = "2")
+    @Parameter(property="h2spec.timeout", defaultValue = "5")
     private int timeout;
 
     /**
@@ -164,6 +164,12 @@ public class Http2SpecMojo extends AbstractMojo
      */
     @Parameter(property = "h2spec.testTimeout", defaultValue = "60")
     private int testTimeout = 60;
+
+    /**
+     * maximum timeout in minutes to run all the tests
+     */
+    @Parameter(property = "h2spec.totalTestTimeout", defaultValue = "10")
+    private int totalTestTimeout = 10;
 
     @SuppressWarnings("unchecked")
     private ClassLoader getClassLoader() throws MojoExecutionException
@@ -347,13 +353,15 @@ public class Http2SpecMojo extends AbstractMojo
                 try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) ) )
                 {
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
-                    h2spec.setWaitStrategy(new LogMessageWaitStrategy().withStartLine("Finished in ")
+                    h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
                                                .withStartupTimeout(Duration.ofSeconds(testTimeout)));
                     h2spec.setPortBindings( Arrays.asList( Integer.toString( port ) ) );
                     h2spec.withCommand( command );
                     h2spec.start();
                     h2spec.copyFileFromContainer("/tmp/junit.xml", junitFile.getAbsolutePath());
                 }
+                // after container stop to be sure file flushed
+                // cleanup so it's readable by Jenkins
                 cleanupJunitReportFileOnlyTime(junitFile);
                 allFailures =
                     H2SpecTestSuite.parseReports( getLog(), junitFile.getParentFile(), new HashSet<>(excludeSpecs) );
@@ -386,8 +394,6 @@ public class Http2SpecMojo extends AbstractMojo
                     // mark fail those ignored/failed test as skipped
                     markedFailedTestAsSkipped(junitFile.toPath());
                 }
-                // after container stop to be sure file flushed
-                // cleanup so it's readable by Jenkins
                 cleanupJunitReportFile(junitFile);
             }
             catch (Exception e)
@@ -407,7 +413,6 @@ public class Http2SpecMojo extends AbstractMojo
 
     private class MojoLogConsumer extends ToStringConsumer
     {
-        // BaseConsumer<MojoLogConsumer>
         private StringBuilder buffer = new StringBuilder();
 
         private Log log;
@@ -420,11 +425,6 @@ public class Http2SpecMojo extends AbstractMojo
         @Override
         public void accept( OutputFrame outputFrame )
         {
-//            if(outputFrame.getBytes()==null) {
-//                return;
-//            }
-//            String frame = new String(outputFrame.getBytes());
-//            getLog().info(frame);
             super.accept(outputFrame);
             getLog().info(toUtf8String());
         }
@@ -493,7 +493,7 @@ public class Http2SpecMojo extends AbstractMojo
                 }
             );
         }
-        try (Writer writer = Files.newBufferedWriter( junitFile.toPath() ))
+        try (Writer writer = Files.newBufferedWriter(junitFile.toPath()))
         {
             Xpp3DomWriter.write(writer, dom);
         }
@@ -543,11 +543,24 @@ public class Http2SpecMojo extends AbstractMojo
 
         private int times = 1;
 
+        private int totalTestTimeout;
+
+        public LogMessageWaitStrategy( String startLine, int times, int totalTestTimeout )
+        {
+            this.startLine = startLine;
+            this.times = times;
+        }
+
+        public LogMessageWaitStrategy( int totalTestTimeout )
+        {
+            this.totalTestTimeout = totalTestTimeout;
+        }
+
         @Override
         protected void waitUntilReady() {
             WaitingConsumer waitingConsumer = new WaitingConsumer();
 
-            LogContainerCmd cmd = DockerClientFactory.instance().client().logContainerCmd( waitStrategyTarget.getContainerId())
+            LogContainerCmd cmd = DockerClientFactory.instance().client().logContainerCmd(waitStrategyTarget.getContainerId())
                 .withFollowStream(true)
                 .withSince(0)
                 .withStdOut(true)
@@ -563,10 +576,12 @@ public class Http2SpecMojo extends AbstractMojo
 
                     Predicate<OutputFrame> waitPredicate = outputFrame -> {
                         String line = outputFrame.getUtf8String();
-                        return line.startsWith( startLine );
+                        return line.startsWith(startLine);
                     };
                     try {
-                        waitingConsumer.waitUntil( waitPredicate, startupTimeout.getSeconds(), TimeUnit.SECONDS, times);
+                        waitingConsumer.waitUntil(waitPredicate, totalTestTimeout,
+                                                  TimeUnit.MINUTES,
+                                                  times);
                     } catch ( TimeoutException e) {
                         throw new ContainerLaunchException( "Timed out waiting for log output matching '" + startLine + "'");
                     }
@@ -574,8 +589,9 @@ public class Http2SpecMojo extends AbstractMojo
             }
             catch ( IOException e )
             {
-                e.printStackTrace();
+                throw new RuntimeException(e.getMessage(), e);
             }
+
         }
 
         public LogMessageWaitStrategy withStartLine( String startLine) {
