@@ -34,6 +34,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.BaseConsumer;
@@ -43,11 +44,15 @@ import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.output.WaitingConsumer;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
+import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.TestcontainersConfiguration;
+import org.testcontainers.utility.ThrowingFunction;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
@@ -61,6 +66,8 @@ import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.CharacterIterator;
 import java.text.DecimalFormat;
 import java.text.StringCharacterIterator;
@@ -333,7 +340,7 @@ public class Http2SpecMojo extends AbstractMojo
                 }
 
                 File junitFile = new File(reportsDirectory, junitFileName);
-                junitFile.createNewFile();
+                //junitFile.createNewFile();
                 String imageName = h2specContainerName + ":" + h2specVersion;
                 String command = String.format( "-h %s -p %d -j %s -o %d --max-header-length %d",
                                                 "host.testcontainers.internal",
@@ -350,6 +357,13 @@ public class Http2SpecMojo extends AbstractMojo
 
                 Testcontainers.exposeHostPorts(port);
 
+                Files.deleteIfExists(junitFile.toPath());
+
+                Path containerTmp = Paths.get(project.getBuild().getDirectory(), "h2spec_tmp");
+                if(Files.exists(containerTmp)) {
+                    FileUtils.deleteDirectory( containerTmp.toFile() );
+                }
+                Files.createDirectories( containerTmp );
                 try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) ) )
                 {
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
@@ -357,9 +371,12 @@ public class Http2SpecMojo extends AbstractMojo
                                                .withStartupTimeout(Duration.ofSeconds(testTimeout)));
                     h2spec.setPortBindings( Arrays.asList( Integer.toString( port ) ) );
                     h2spec.withCommand( command );
+                    h2spec.withFileSystemBind( containerTmp.toString(), "/tmp", BindMode.READ_WRITE );
                     h2spec.start();
-                    h2spec.copyFileFromContainer("/tmp/junit.xml", junitFile.getAbsolutePath());
                 }
+                Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
+                            junitFile.toPath(),
+                            StandardCopyOption.REPLACE_EXISTING );
                 // after container stop to be sure file flushed
                 // cleanup so it's readable by Jenkins
                 cleanupJunitReportFileOnlyTime(junitFile);
