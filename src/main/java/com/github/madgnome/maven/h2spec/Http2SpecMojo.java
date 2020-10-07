@@ -81,6 +81,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import static com.github.madgnome.maven.h2spec.H2SpecTestSuite.DEFAULT_VERSION;
 import static org.testcontainers.containers.output.OutputFrame.OutputType.STDERR;
@@ -374,6 +375,7 @@ public class Http2SpecMojo extends AbstractMojo
                     h2spec.withFileSystemBind( containerTmp.toString(), "/tmp", BindMode.READ_WRITE );
                     h2spec.start();
                 }
+                getLog().info( "list tmp files: ", Files.list(containerTmp).collect( Collectors.toList()));
                 Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
                             junitFile.toPath(),
                             StandardCopyOption.REPLACE_EXISTING );
@@ -428,7 +430,7 @@ public class Http2SpecMojo extends AbstractMojo
         }
     }
 
-    private class MojoLogConsumer extends ToStringConsumer
+    private static class MojoLogConsumer extends ToStringConsumer
     {
         private StringBuilder buffer = new StringBuilder();
 
@@ -443,7 +445,7 @@ public class Http2SpecMojo extends AbstractMojo
         public void accept( OutputFrame outputFrame )
         {
             super.accept(outputFrame);
-            getLog().info(toUtf8String());
+            log.info(toUtf8String());
         }
     }
 
