@@ -37,11 +37,11 @@ pipeline {
             mavenBuild( "jdk11", "clean install javadoc:jar" )
           }
         }
-        stage( "Build / Test - JDK14" ) {
+        stage( "Build / Test - JDK15" ) {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            mavenBuild( "jdk14", "clean install javadoc:jar" )
+            mavenBuild( "jdk15", "clean install javadoc:jar" )
           }
         }
       }
