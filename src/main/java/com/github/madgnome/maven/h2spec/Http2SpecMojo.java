@@ -549,6 +549,7 @@ public class Http2SpecMojo extends AbstractMojo
         {
             this.startLine = startLine;
             this.times = times;
+            this.totalTestTimeout = totalTestTimeout;
         }
 
         public LogMessageWaitStrategy( int totalTestTimeout )
@@ -579,6 +580,7 @@ public class Http2SpecMojo extends AbstractMojo
                         return line.startsWith(startLine);
                     };
                     try {
+                        //waitingConsumer.waitUntilEnd(totalTestTimeout, TimeUnit.MINUTES);
                         waitingConsumer.waitUntil(waitPredicate, totalTestTimeout,
                                                   TimeUnit.MINUTES,
                                                   times);
@@ -599,10 +601,6 @@ public class Http2SpecMojo extends AbstractMojo
             return this;
         }
 
-        public LogMessageWaitStrategy withStartLine( int times) {
-            this.times = times;
-            return this;
-        }
     }
 
 
