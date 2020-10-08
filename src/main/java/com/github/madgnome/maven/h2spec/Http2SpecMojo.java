@@ -16,6 +16,8 @@ package com.github.madgnome.maven.h2spec;
  * limitations under the License.
  */
 
+import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.LogContainerCmd;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -365,27 +367,42 @@ public class Http2SpecMojo extends AbstractMojo
                     FileUtils.deleteDirectory( containerTmp.toFile() );
                 }
                 Files.createDirectories( containerTmp );
+                DockerClient dockerClient = DockerClientFactory.instance().client();
                 try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) ) )
                 {
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
                                                .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
-                    h2spec.setPortBindings( Arrays.asList( Integer.toString( port ) ) );
-                    h2spec.withCommand( command );
+                    h2spec.setPortBindings(Arrays.asList(Integer.toString(port)));
+                    h2spec.withCommand(command);
                     h2spec.withFileSystemBind( containerTmp.toString(), "/tmp", BindMode.READ_WRITE );
                     h2spec.start();
-                }
-                List<String> files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
-                long start = System.currentTimeMillis();
-                while (files.isEmpty()) {
-                    Thread.sleep( 1000 );
-                    getLog().info( "waiting for junit file to get flushed:" + files );
-                    if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
-                    {
-                        break;
+                    String containerId = h2spec.getContainerId();
+                    long start = System.currentTimeMillis();
+                    while(dockerClient.inspectContainerCmd(containerId).exec().getState().getRunning()){
+                        Thread.sleep( 1000 );
+                        getLog().info("h2spec docker still running");
+                        if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
+                        {
+                            // TODO log exception here
+                            getLog().info( "h2spec docker timeout run" );
+                            break;
+                        }
                     }
-                    files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
+
                 }
+
+//                List<String> files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
+//                long start = System.currentTimeMillis();
+//                while (files.isEmpty()) {
+//                    Thread.sleep( 1000 );
+//                    getLog().info( "waiting for junit file to get flushed:" + files );
+//                    if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
+//                    {
+//                        break;
+//                    }
+//                    files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
+//                }
 
 
                 Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
