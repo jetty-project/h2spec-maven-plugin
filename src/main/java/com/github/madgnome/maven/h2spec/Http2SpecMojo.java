@@ -389,11 +389,10 @@ public class Http2SpecMojo extends AbstractMojo
                             break;
                         }
                     }
+                    Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
+                                junitFile.toPath(),
+                                StandardCopyOption.REPLACE_EXISTING );
                 }
-
-                Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
-                            junitFile.toPath(),
-                            StandardCopyOption.REPLACE_EXISTING );
                 // after container stop to be sure file flushed
                 // cleanup so it's readable by Jenkins
                 cleanupJunitReportFileOnlyTime(junitFile);
