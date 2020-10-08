@@ -375,8 +375,18 @@ public class Http2SpecMojo extends AbstractMojo
                     h2spec.withFileSystemBind( containerTmp.toString(), "/tmp", BindMode.READ_WRITE );
                     h2spec.start();
                 }
-                getLog().info( "list tmp files: " +
-                               Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList()));
+                List<String> files;
+                long start = System.currentTimeMillis();
+                do {
+                    Thread.sleep( 1000 );
+                    files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
+                    if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
+                    {
+                        break;
+                    }
+                } while(files.isEmpty());
+
+
                 Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
                             junitFile.toPath(),
                             StandardCopyOption.REPLACE_EXISTING );
