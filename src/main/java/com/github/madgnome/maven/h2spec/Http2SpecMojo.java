@@ -389,22 +389,8 @@ public class Http2SpecMojo extends AbstractMojo
                             break;
                         }
                     }
-
                 }
-
-//                List<String> files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
-//                long start = System.currentTimeMillis();
-//                while (files.isEmpty()) {
-//                    Thread.sleep( 1000 );
-//                    getLog().info( "waiting for junit file to get flushed:" + files );
-//                    if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
-//                    {
-//                        break;
-//                    }
-//                    files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
-//                }
-
-
+                
                 Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
                             junitFile.toPath(),
                             StandardCopyOption.REPLACE_EXISTING );
