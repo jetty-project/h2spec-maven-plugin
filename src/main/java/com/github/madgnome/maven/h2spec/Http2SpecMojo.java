@@ -369,23 +369,23 @@ public class Http2SpecMojo extends AbstractMojo
                 {
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
-                                               .withStartupTimeout(Duration.ofSeconds(testTimeout)));
+                                               .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
                     h2spec.setPortBindings( Arrays.asList( Integer.toString( port ) ) );
                     h2spec.withCommand( command );
                     h2spec.withFileSystemBind( containerTmp.toString(), "/tmp", BindMode.READ_WRITE );
                     h2spec.start();
                 }
-                List<String> files;
+                List<String> files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
                 long start = System.currentTimeMillis();
-                do {
+                while (files.isEmpty()) {
                     Thread.sleep( 1000 );
-                    getLog().info( "waiting for junit file to get flushed" );
-                    files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
+                    getLog().info( "waiting for junit file to get flushed:" + files );
                     if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
                     {
                         break;
                     }
-                } while(files.isEmpty());
+                    files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
+                }
 
 
                 Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
