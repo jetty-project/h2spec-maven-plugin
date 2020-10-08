@@ -379,6 +379,7 @@ public class Http2SpecMojo extends AbstractMojo
                 long start = System.currentTimeMillis();
                 do {
                     Thread.sleep( 1000 );
+                    getLog().info( "waiting for junit file to get flushed" );
                     files = Files.list(containerTmp).map(path -> path.toString()).collect(Collectors.toList());
                     if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
                     {
