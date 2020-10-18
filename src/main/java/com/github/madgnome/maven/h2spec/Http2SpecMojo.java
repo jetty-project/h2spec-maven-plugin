@@ -348,7 +348,7 @@ public class Http2SpecMojo extends AbstractMojo
                 String command = String.format( "-h %s -p %d -j %s -o %d --max-header-length %d",
                                                 "host.testcontainers.internal",
                                                 port,
-                                                "/var/junit.xml",
+                                                "/foo/junit.xml",
                                                 timeout,
                                                 maxHeaderLength );
                 if ( verbose )
@@ -374,8 +374,9 @@ public class Http2SpecMojo extends AbstractMojo
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
                                                .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
                     h2spec.setPortBindings(Arrays.asList(Integer.toString(port)));
+                    h2spec.withWorkingDirectory("/foo");
                     h2spec.withCommand(command);
-                    h2spec.withFileSystemBind( containerTmp.toString(), "/var", BindMode.READ_WRITE );
+                    h2spec.withFileSystemBind( containerTmp.toString(), "/foo", BindMode.READ_WRITE );
                     h2spec.start();
                     String containerId = h2spec.getContainerId();
                     long start = System.currentTimeMillis();
