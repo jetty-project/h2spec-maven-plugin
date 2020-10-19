@@ -390,6 +390,11 @@ public class Http2SpecMojo extends AbstractMojo
                             break;
                         }
                     }
+                    try {
+                        h2spec.copyFileFromContainer( "/foo/junit.xml", containerTmp.toString() +  "/junit.xml" );
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
                                 junitFile.toPath(),
                                 StandardCopyOption.REPLACE_EXISTING );
