@@ -391,13 +391,15 @@ public class Http2SpecMojo extends AbstractMojo
                         }
                     }
                     try {
-                        h2spec.copyFileFromContainer( "/foo/junit.xml", containerTmp.toString() +  "/junit.xml" );
+                        h2spec.copyFileFromContainer( "/foo/junit.xml", junitFile.toPath().toString());
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        //
                     }
-                    Files.copy( new File(containerTmp.toString(), "junit.xml").toPath(),
-                                junitFile.toPath(),
-                                StandardCopyOption.REPLACE_EXISTING );
+                    // try another way if copyFileFromContainer didn't work....
+                    if(!Files.exists(junitFile.toPath())) {
+                        Files.copy( new File( containerTmp.toString(), "junit.xml" ).toPath(), junitFile.toPath(),
+                                    StandardCopyOption.REPLACE_EXISTING );
+                    }
                 }
                 // after container stop to be sure file flushed
                 // cleanup so it's readable by Jenkins
