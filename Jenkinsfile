@@ -15,17 +15,20 @@ pipeline {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            mavenBuild( "jdk8", "clean install javadoc:jar" )
-            // Collect up the jacoco execution results
-            jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                   exclusionPattern: '',
-                   execPattern: '**/target/jacoco.exec',
-                   classPattern: '**/target/classes',
-                   sourcePattern: '**/src/main/java'
-            warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
-            script {
-              if (env.BRANCH_NAME == 'master') {
-                mavenBuild( "jdk8", "deploy" )
+            container('jetty-build') {
+              mavenBuild( "jdk8", "clean install javadoc:jar" )
+              // Collect up the jacoco execution results
+              jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
+                     exclusionPattern: '',
+                     execPattern: '**/target/jacoco.exec',
+                     classPattern: '**/target/classes',
+                     sourcePattern: '**/src/main/java'
+              warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+              script {
+                if ( env.BRANCH_NAME == 'master' )
+                {
+                  mavenBuild( "jdk8", "deploy" )
+                }
               }
             }
           }
@@ -34,14 +37,18 @@ pipeline {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            mavenBuild( "jdk11", "clean install javadoc:jar" )
+            container('jetty-build') {
+              mavenBuild( "jdk11", "clean install javadoc:jar" )
+            }
           }
         }
         stage( "Build / Test - JDK15" ) {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            mavenBuild( "jdk15", "clean install javadoc:jar" )
+            container('jetty-build') {
+              mavenBuild( "jdk15", "clean install javadoc:jar" )
+            }
           }
         }
       }

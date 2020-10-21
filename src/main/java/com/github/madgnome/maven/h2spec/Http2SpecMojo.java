@@ -17,7 +17,6 @@ package com.github.madgnome.maven.h2spec;
  */
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.command.LogContainerCmd;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -33,28 +32,22 @@ import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.codehaus.plexus.util.xml.Xpp3DomWriter;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
-import org.slf4j.LoggerFactory;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.BaseConsumer;
 import org.testcontainers.containers.output.FrameConsumerResultCallback;
 import org.testcontainers.containers.output.OutputFrame;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
 import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.output.WaitingConsumer;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
-import org.testcontainers.shaded.org.apache.commons.io.IOUtils;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.TestcontainersConfiguration;
-import org.testcontainers.utility.ThrowingFunction;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
@@ -70,9 +63,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.text.CharacterIterator;
 import java.text.DecimalFormat;
-import java.text.StringCharacterIterator;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -83,7 +74,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static com.github.madgnome.maven.h2spec.H2SpecTestSuite.DEFAULT_VERSION;
 import static org.testcontainers.containers.output.OutputFrame.OutputType.STDERR;
@@ -373,6 +363,7 @@ public class Http2SpecMojo extends AbstractMojo
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
                                                .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
+                    //h2spec.withStartupCheckStrategy(  )
                     h2spec.setPortBindings(Arrays.asList(Integer.toString(port)));
                     h2spec.withWorkingDirectory("/foo");
                     h2spec.withCommand(command);
