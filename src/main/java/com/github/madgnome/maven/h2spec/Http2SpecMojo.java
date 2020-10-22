@@ -35,6 +35,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
+import org.testcontainers.containers.Container;
 import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.FrameConsumerResultCallback;
@@ -369,6 +370,10 @@ public class Http2SpecMojo extends AbstractMojo
                     h2spec.withCommand(command);
                     h2spec.withFileSystemBind( containerTmp.toString(), "/foo", BindMode.READ_WRITE );
                     h2spec.start();
+                    Container.ExecResult lsResult = h2spec.execInContainer( "ls", "-lrt", "/foo");
+                    String stdout = lsResult.getStdout();
+                    //int exitCode = lsResult.getExitCode();
+                    getLog()              .info( "ls -lrt /foo: " +stdout );
                     String containerId = h2spec.getContainerId();
                     long start = System.currentTimeMillis();
                     while(dockerClient.inspectContainerCmd(containerId).exec().getState().getRunning()){
