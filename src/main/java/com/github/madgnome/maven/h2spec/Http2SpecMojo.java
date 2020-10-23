@@ -18,6 +18,8 @@ package com.github.madgnome.maven.h2spec;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.LogContainerCmd;
+import com.github.dockerjava.api.exception.NotFoundException;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -35,13 +37,13 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.Container;
 import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.output.FrameConsumerResultCallback;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.output.WaitingConsumer;
+import org.testcontainers.containers.startupcheck.StartupCheckStrategy;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import org.testcontainers.utility.DockerImageName;
@@ -49,6 +51,7 @@ import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.lang.reflect.Method;
@@ -63,7 +66,6 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -358,45 +360,42 @@ public class Http2SpecMojo extends AbstractMojo
                     FileUtils.deleteDirectory( containerTmp.toFile() );
                 }
                 Files.createDirectories( containerTmp );
-                DockerClient dockerClient = DockerClientFactory.instance().client();
-                try (GenericContainer h2spec = new GenericContainer( DockerImageName.parse( imageName ) ) )
+                DockerImageName dockerImageName = DockerImageName.parse(imageName);
+                try (GenericContainer h2spec = new GenericContainer(dockerImageName))
                 {
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
                                                .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
-                    //h2spec.withStartupCheckStrategy(  )
                     h2spec.setPortBindings(Arrays.asList(Integer.toString(port)));
+
+                    // we simply declare it as started once we get the file
+                    h2spec.withStartupCheckStrategy(new StartupCheckStrategy()
+                    {
+                        @Override
+                        public StartupStatus checkStartupState( DockerClient dockerClient, String containerId )
+                        {
+                            try(InputStream inputStream =
+                                    dockerClient.copyArchiveFromContainerCmd( containerId, "/foo/junit.xml" ).exec();
+                                TarArchiveInputStream tarInputStream = new TarArchiveInputStream(inputStream))
+                            {
+                                tarInputStream.getNextEntry();
+                                Files.copy(tarInputStream, junitFile.toPath());
+                                return StartupStatus.SUCCESSFUL;
+                            } catch ( NotFoundException e ){
+                                // ignore as file not ready yet
+                            }
+                            catch ( Exception e )
+                            {
+                                throw new RuntimeException(e.getMessage(),e);
+                            }
+                            // still no file so we declare this not ready yet
+                            return StartupStatus.NOT_YET_KNOWN;
+                        }
+                    } );
                     h2spec.withWorkingDirectory("/foo");
                     h2spec.withCommand(command);
                     h2spec.withFileSystemBind( containerTmp.toString(), "/foo", BindMode.READ_WRITE );
                     h2spec.start();
-                    Container.ExecResult lsResult = h2spec.execInContainer( "ls", "-lrt", "/foo");
-                    String stdout = lsResult.getStdout();
-                    //int exitCode = lsResult.getExitCode();
-                    getLog()              .info( "ls -lrt /foo: " +stdout );
-                    String containerId = h2spec.getContainerId();
-                    long start = System.currentTimeMillis();
-                    while(dockerClient.inspectContainerCmd(containerId).exec().getState().getRunning()){
-                        Thread.sleep( 1000 );
-                        getLog().info("h2spec docker still running");
-                        if(System.currentTimeMillis() - start > TimeUnit.MILLISECONDS.convert(totalTestTimeout, TimeUnit.MINUTES))
-                        {
-                            // TODO log exception here
-                            getLog().info( "h2spec docker timeout run" );
-                            break;
-                        }
-                    }
-                    try {
-                        h2spec.copyFileFromContainer( "/foo/junit.xml", junitFile.toPath().toString());
-                    } catch (Exception e) {
-                        //
-                        getLog().warn( e.getMessage(), e );
-                    }
-                    // try another way if copyFileFromContainer didn't work....
-                    if(!Files.exists(junitFile.toPath())) {
-                        Files.copy(new File(containerTmp.toString(), "junit.xml").toPath(), junitFile.toPath(),
-                                    StandardCopyOption.REPLACE_EXISTING );
-                    }
                 }
                 // after container stop to be sure file flushed
                 // cleanup so it's readable by Jenkins
@@ -618,7 +617,6 @@ public class Http2SpecMojo extends AbstractMojo
                         return line.startsWith(startLine);
                     };
                     try {
-                        //waitingConsumer.waitUntilEnd(totalTestTimeout, TimeUnit.MINUTES);
                         waitingConsumer.waitUntil(waitPredicate, totalTestTimeout,
                                                   TimeUnit.MINUTES,
                                                   times);
