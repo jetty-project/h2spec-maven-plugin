@@ -1,4 +1,4 @@
-package com.github.madgnome.maven.h2spec;
+package org.mortbay.jetty.maven.h2spec;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.surefire.report.ReportTestCase;

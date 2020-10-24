@@ -1,4 +1,4 @@
-package com.github.madgnome.maven.h2spec;
+package org.mortbay.jetty.maven.h2spec;
 
 /*
  * Copyright 2001-2005 The Apache Software Foundation.
@@ -78,7 +78,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
-import static com.github.madgnome.maven.h2spec.H2SpecTestSuite.DEFAULT_VERSION;
+import static org.mortbay.jetty.maven.h2spec.H2SpecTestSuite.DEFAULT_VERSION;
 import static org.testcontainers.containers.output.OutputFrame.OutputType.STDERR;
 import static org.testcontainers.containers.output.OutputFrame.OutputType.STDOUT;
 

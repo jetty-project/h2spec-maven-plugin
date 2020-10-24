@@ -1,4 +1,4 @@
-package com.github.madgnome.maven.h2spec;
+package org.mortbay.jetty.maven.h2spec;
 
 public class Failure {
     private final String name;

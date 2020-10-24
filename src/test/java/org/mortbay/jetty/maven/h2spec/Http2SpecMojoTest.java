@@ -1,11 +1,11 @@
-package com.github.madgnome.maven.h2spec;
+package org.mortbay.jetty.maven.h2spec;
 
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.Xpp3DomBuilder;
 import org.junit.Test;
+import org.mortbay.jetty.maven.h2spec.Http2SpecMojo;
 
 import java.io.Reader;
-import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
