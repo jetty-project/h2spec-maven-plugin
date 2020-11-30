@@ -138,6 +138,9 @@ public class Http2SpecMojo extends AbstractMojo
     @Parameter(property = "maven.test.skip", defaultValue = "false" )
     protected boolean skip;
 
+    @Parameter(property = "h2spec.forceSkip", defaultValue = "false" )
+    protected boolean forceSkip;
+
     @Parameter(property = "h2spec.junitFileName", defaultValue = "TEST-h2spec.xml" )
     private String junitFileName;
 
@@ -203,7 +206,7 @@ public class Http2SpecMojo extends AbstractMojo
 
     public void execute() throws MojoExecutionException, MojoFailureException
     {
-        if (skip)
+        if (skip || forceSkip)
         {
             getLog().info("Skip execution of h2spec-maven-plugin");
             return;
@@ -391,7 +394,7 @@ public class Http2SpecMojo extends AbstractMojo
                             // still no file so we declare this not ready yet
                             return StartupStatus.NOT_YET_KNOWN;
                         }
-                    } );
+                    });
                     h2spec.withWorkingDirectory("/foo");
                     h2spec.withCommand(command);
                     h2spec.withFileSystemBind( containerTmp.toString(), "/foo", BindMode.READ_WRITE );
