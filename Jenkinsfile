@@ -23,7 +23,7 @@ pipeline {
                      execPattern: '**/target/jacoco.exec',
                      classPattern: '**/target/classes',
                      sourcePattern: '**/src/main/java'
-              warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+              recordIssues id: "jdk11", name: "Static Analysis jdk8", aggregatingResults: true, enabledForFailure: true, tools: [mavenConsole(), java(), checkStyle(), spotBugs(), pmdParser(), errorProne()]
               script {
                 if ( env.BRANCH_NAME == 'master' )
                 {
@@ -80,7 +80,7 @@ def mavenBuild(jdk, cmdline) {
           mavenOpts: mavenOpts,
           mavenLocalRepo: localRepo) {
     // Some common Maven command line + provided command line
-    sh "mvn -V -B -DfailIfNoTests=false -e $cmdline"
+    sh "mvn -V -B -DfailIfNoTests=false --no-transfer-progress -e $cmdline"
   }
 }
 
