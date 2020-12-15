@@ -23,7 +23,7 @@ pipeline {
                      execPattern: '**/target/jacoco.exec',
                      classPattern: '**/target/classes',
                      sourcePattern: '**/src/main/java'
-              warnings consoleParsers: [[parserName: 'Maven'], [parserName: 'Java']]
+              recordIssues id: "jdk8", name: "Static Analysis jdk8", aggregatingResults: true, enabledForFailure: true, tools: [mavenConsole(), java(), checkStyle(), spotBugs(), pmdParser(), errorProne()]
               script {
                 if ( env.BRANCH_NAME == 'master' )
                 {
@@ -66,21 +66,21 @@ pipeline {
  * @return the Jenkinsfile step representing a maven build
  */
 def mavenBuild(jdk, cmdline) {
-  def mvnName = 'maven3.5'
-  def localRepo = "${env.JENKINS_HOME}/${env.EXECUTOR_NUMBER}" // ".repository" //
-  def settingsName = 'oss-settings.xml'
-  def mavenOpts = '-Xms2g -Xmx2g -Djava.awt.headless=true'
-
-  withMaven(
-          maven: mvnName,
-          jdk: "$jdk",
-          publisherStrategy: 'EXPLICIT',
-          globalMavenSettingsConfig: settingsName,
-          options: [junitPublisher(disabled: false)],
-          mavenOpts: mavenOpts,
-          mavenLocalRepo: localRepo) {
-    // Some common Maven command line + provided command line
-    sh "mvn -V -B -DfailIfNoTests=false -e $cmdline"
+  script {
+    try {
+      withEnv(["JAVA_HOME=${ tool "$jdk" }",
+               "PATH+MAVEN=${ tool "$jdk" }/bin:${tool "maven3"}/bin",
+               "MAVEN_OPTS=-Xms2g -Xmx4g -Djava.awt.headless=true"]) {
+        configFileProvider(
+                [configFile(fileId: 'oss-settings.xml', variable: 'GLOBAL_MVN_SETTINGS')]) {
+          sh "mvn --no-transfer-progress -s $GLOBAL_MVN_SETTINGS -Pci -V -B -e $cmdline"
+        }
+      }
+    }
+    finally
+    {
+      junit testResults: '**/target/surefire-reports/*.xml,**/target/invoker-reports/TEST*.xml', allowEmptyResults: true
+    }
   }
 }
 
