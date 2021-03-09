@@ -166,12 +166,6 @@ public class Http2SpecMojo extends AbstractMojo
     private boolean skipNoDockerAvailable;
 
     /**
-     * maximum timeout in seconds to run the tests
-     */
-    @Parameter(property = "h2spec.testTimeout", defaultValue = "60")
-    private int testTimeout = 60;
-
-    /**
      * maximum timeout in minutes to run all the tests
      */
     @Parameter(property = "h2spec.totalTestTimeout", defaultValue = "10")
@@ -489,8 +483,8 @@ public class Http2SpecMojo extends AbstractMojo
                         Arrays.stream( testsuite.getChildren() ).forEach( testcase -> {
                             if ( testcase.getChild( "error" ) != null )
                             {
-                                int skipped = Integer.valueOf( testsuite.getAttribute( "skipped" ) );
-                                int errors = Integer.valueOf( testsuite.getAttribute( "errors" ) );
+                                int skipped = Integer.parseInt( testsuite.getAttribute( "skipped" ) );
+                                int errors = Integer.parseInt( testsuite.getAttribute( "errors" ) );
                                 testsuite.setAttribute( "skipped", Integer.toString( ++skipped ) );
                                 testsuite.setAttribute( "errors", Integer.toString( --errors ) );
                                 Xpp3Dom skippedDom = new Xpp3Dom( "skipped" );
