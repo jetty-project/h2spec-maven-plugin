@@ -447,8 +447,6 @@ public class Http2SpecMojo extends AbstractMojo
 
     private static class MojoLogConsumer extends ToStringConsumer
     {
-        private StringBuilder buffer = new StringBuilder();
-
         private Log log;
 
         public MojoLogConsumer( Log log )
