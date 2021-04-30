@@ -87,10 +87,6 @@ import static org.testcontainers.containers.output.OutputFrame.OutputType.STDOUT
         requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true)
 public class Http2SpecMojo extends AbstractMojo
 {
-    static
-    {
-        TestcontainersConfiguration.getInstance().getProperties().setProperty( "transport.type","httpclient5" );
-    }
 
     /**
      * The port on which the Server will listen.
