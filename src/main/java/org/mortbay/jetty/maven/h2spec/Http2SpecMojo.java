@@ -164,7 +164,7 @@ public class Http2SpecMojo extends AbstractMojo
     /**
      * maximum timeout in minutes to run all the tests
      */
-    @Parameter(property = "h2spec.totalTestTimeout", defaultValue = "10")
+    @Parameter(property = "h2spec.totalTestTimeout", defaultValue = "5")
     private int totalTestTimeout = 5;
 
     @SuppressWarnings("unchecked")
