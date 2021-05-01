@@ -51,6 +51,15 @@ pipeline {
             }
           }
         }
+        stage( "Build / Test - JDK16" ) {
+          agent { node { label 'linux' } }
+          options { timeout( time: 120, unit: 'MINUTES' ) }
+          steps {
+            container('jetty-build') {
+              mavenBuild( "jdk16", "clean install javadoc:jar" )
+            }
+          }
+        }
       }
     }
   }
