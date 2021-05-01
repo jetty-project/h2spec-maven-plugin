@@ -45,9 +45,9 @@ import org.testcontainers.containers.output.ToStringConsumer;
 import org.testcontainers.containers.output.WaitingConsumer;
 import org.testcontainers.containers.startupcheck.StartupCheckStrategy;
 import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
+import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.utility.TestcontainersConfiguration;
 
 import java.io.File;
 import java.io.IOException;
@@ -165,7 +165,7 @@ public class Http2SpecMojo extends AbstractMojo
      * maximum timeout in minutes to run all the tests
      */
     @Parameter(property = "h2spec.totalTestTimeout", defaultValue = "10")
-    private int totalTestTimeout = 10;
+    private int totalTestTimeout = 5;
 
     @SuppressWarnings("unchecked")
     private ClassLoader getClassLoader() throws MojoExecutionException
@@ -357,8 +357,10 @@ public class Http2SpecMojo extends AbstractMojo
                 try (GenericContainer h2spec = new GenericContainer(dockerImageName))
                 {
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
-                    h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
-                                               .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
+                    //h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
+                    //                           .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
+                    h2spec.setWaitStrategy( new LogMessageWaitStrategy().withRegEx(".*Finished in.*")
+                                                .withStartupTimeout(Duration.ofMinutes( totalTestTimeout)) );
                     h2spec.setPortBindings(Arrays.asList(Integer.toString(port)));
 
                     // we simply declare it as started once we get the file
@@ -564,7 +566,8 @@ public class Http2SpecMojo extends AbstractMojo
         }
     }
 
-    static class LogMessageWaitStrategy extends AbstractWaitStrategy
+    static class ConsoleLogMessageWaitStrategy
+        extends AbstractWaitStrategy
     {
 
         private String startLine;
@@ -573,14 +576,14 @@ public class Http2SpecMojo extends AbstractMojo
 
         private int totalTestTimeout;
 
-        public LogMessageWaitStrategy( String startLine, int times, int totalTestTimeout )
+        public ConsoleLogMessageWaitStrategy( String startLine, int times, int totalTestTimeout )
         {
             this.startLine = startLine;
             this.times = times;
             this.totalTestTimeout = totalTestTimeout;
         }
 
-        public LogMessageWaitStrategy( int totalTestTimeout )
+        public ConsoleLogMessageWaitStrategy( int totalTestTimeout )
         {
             this.totalTestTimeout = totalTestTimeout;
         }
@@ -623,7 +626,7 @@ public class Http2SpecMojo extends AbstractMojo
 
         }
 
-        public LogMessageWaitStrategy withStartLine( String startLine) {
+        public ConsoleLogMessageWaitStrategy withStartLine( String startLine) {
             this.startLine = startLine;
             return this;
         }
