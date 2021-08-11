@@ -231,12 +231,10 @@ public class Http2SpecMojo extends AbstractMojo
                 // Get some random free port
                 port = findRandomOpenPortOnAllLocalInterfaces();
             }
-            ClassLoader ori = Thread.currentThread().getContextClassLoader();
             runner = new Thread(() ->
             {
                 try
                 {
-                    Thread.currentThread().setContextClassLoader(getClassLoader());
                     Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(mainClass);
                     Method main = clazz.getMethod("main", String[].class);
                     main.invoke(null, (Object) new String[] {String.valueOf(port) });
@@ -244,11 +242,9 @@ public class Http2SpecMojo extends AbstractMojo
                 catch (Throwable e)
                 {
                     error.set(e);
-                } finally
-                {
-                    Thread.currentThread().setContextClassLoader(ori);
                 }
             });
+            runner.setContextClassLoader(getClassLoader());
             runner.setDaemon(true);
             runner.start();
             try
