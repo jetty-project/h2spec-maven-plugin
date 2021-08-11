@@ -17,7 +17,6 @@ package org.mortbay.jetty.maven.h2spec;
  */
 
 import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.LogContainerCmd;
 import com.github.dockerjava.api.exception.NotFoundException;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.maven.plugin.AbstractMojo;
@@ -37,14 +36,10 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.BindMode;
-import org.testcontainers.containers.ContainerLaunchException;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.output.FrameConsumerResultCallback;
 import org.testcontainers.containers.output.OutputFrame;
 import org.testcontainers.containers.output.ToStringConsumer;
-import org.testcontainers.containers.output.WaitingConsumer;
 import org.testcontainers.containers.startupcheck.StartupCheckStrategy;
-import org.testcontainers.containers.wait.strategy.AbstractWaitStrategy;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
 import org.testcontainers.utility.DockerImageName;
@@ -73,15 +68,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 
 import static org.mortbay.jetty.maven.h2spec.H2SpecTestSuite.DEFAULT_VERSION;
-import static org.testcontainers.containers.output.OutputFrame.OutputType.STDERR;
-import static org.testcontainers.containers.output.OutputFrame.OutputType.STDOUT;
-
 
 @Mojo(name = "h2spec", defaultPhase = LifecyclePhase.INTEGRATION_TEST,
         requiresDependencyResolution = ResolutionScope.TEST, threadSafe = true)
@@ -173,8 +162,6 @@ public class Http2SpecMojo extends AbstractMojo
         try
         {
             List<String> classpathElements = project.getTestClasspathElements();
-            classpathElements.add(project.getBuild().getOutputDirectory());
-            classpathElements.add(project.getBuild().getTestOutputDirectory());
 
             return new URLClassLoader(classpathElements.stream().map(s ->
             {
@@ -303,10 +290,7 @@ public class Http2SpecMojo extends AbstractMojo
             try
             {
                 getLog().info("!!! Exclude specs");
-                for (String excludeSpec : excludeSpecs)
-                {
-                    getLog().info(excludeSpec);
-                }
+                excludeSpecs.forEach(s -> getLog().info(s));
 
                 List<Failure> allFailures;
                 List<Failure> nonIgnoredFailures = new ArrayList<>();
@@ -561,73 +545,6 @@ public class Http2SpecMojo extends AbstractMojo
         {
             throw new RuntimeException("Can't find an open socket", e);
         }
-    }
-
-    static class ConsoleLogMessageWaitStrategy
-        extends AbstractWaitStrategy
-    {
-
-        private String startLine;
-
-        private int times = 1;
-
-        private int totalTestTimeout;
-
-        public ConsoleLogMessageWaitStrategy( String startLine, int times, int totalTestTimeout )
-        {
-            this.startLine = startLine;
-            this.times = times;
-            this.totalTestTimeout = totalTestTimeout;
-        }
-
-        public ConsoleLogMessageWaitStrategy( int totalTestTimeout )
-        {
-            this.totalTestTimeout = totalTestTimeout;
-        }
-
-        @Override
-        protected void waitUntilReady() {
-            WaitingConsumer waitingConsumer = new WaitingConsumer();
-
-            LogContainerCmd cmd = DockerClientFactory.instance().client().logContainerCmd(waitStrategyTarget.getContainerId())
-                .withFollowStream(true)
-                .withSince(0)
-                .withStdOut(true)
-                .withStdErr(true);
-
-            try
-            {
-                try (FrameConsumerResultCallback callback = new FrameConsumerResultCallback()) {
-                    callback.addConsumer(STDOUT, waitingConsumer);
-                    callback.addConsumer(STDERR, waitingConsumer);
-
-                    cmd.exec(callback);
-
-                    Predicate<OutputFrame> waitPredicate = outputFrame -> {
-                        String line = outputFrame.getUtf8String();
-                        return line.startsWith(startLine);
-                    };
-                    try {
-                        waitingConsumer.waitUntil(waitPredicate, totalTestTimeout,
-                                                  TimeUnit.MINUTES,
-                                                  times);
-                    } catch ( TimeoutException e) {
-                        throw new ContainerLaunchException( "Timed out waiting for log output matching '" + startLine + "'");
-                    }
-                }
-            }
-            catch ( IOException e )
-            {
-                throw new RuntimeException(e.getMessage(), e);
-            }
-
-        }
-
-        public ConsoleLogMessageWaitStrategy withStartLine( String startLine) {
-            this.startLine = startLine;
-            return this;
-        }
-
     }
 
 
