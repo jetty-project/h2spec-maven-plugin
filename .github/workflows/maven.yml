@@ -54,4 +54,4 @@ jobs:
         with:
           maven-version: 3.6.3
       - name: Build with Maven
-        run: mvn install -e -B -V
+        run: mvn install -e -B -V javadoc:jar
