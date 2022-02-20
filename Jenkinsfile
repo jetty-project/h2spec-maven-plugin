@@ -42,21 +42,12 @@ pipeline {
             }
           }
         }
-        stage( "Build / Test - JDK15" ) {
+        stage( "Build / Test - JDK17" ) {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             container('jetty-build') {
               mavenBuild( "jdk15", "clean install javadoc:jar" )
-            }
-          }
-        }
-        stage( "Build / Test - JDK16" ) {
-          agent { node { label 'linux' } }
-          options { timeout( time: 120, unit: 'MINUTES' ) }
-          steps {
-            container('jetty-build') {
-              mavenBuild( "jdk16", "clean install javadoc:jar" )
             }
           }
         }
