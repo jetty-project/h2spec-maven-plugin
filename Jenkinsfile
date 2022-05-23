@@ -47,7 +47,7 @@ pipeline {
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             container('jetty-build') {
-              mavenBuild( "jdk15", "clean install javadoc:jar" )
+              mavenBuild( "jdk17", "clean install javadoc:jar" )
             }
           }
         }
