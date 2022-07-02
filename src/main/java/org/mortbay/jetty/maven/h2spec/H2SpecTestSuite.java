@@ -36,6 +36,10 @@ public class H2SpecTestSuite
             logger.debug(parsedReports.size() + " h2spec reports parsed.");
             for (ReportTestSuite parsedReport : parsedReports)
             {
+                final String name = parsedReport.getFullClassName();
+                final String specIdentifier = getSpecIdentifier(currentPackageName, name);
+                logger.debug("Spec Identifier [" + specIdentifier + "]");
+
                 String packageName = parsedReport.getPackageName();
                 if (packageName.length() > 0)
                 {
@@ -46,17 +50,24 @@ public class H2SpecTestSuite
                 {
                     for (ReportTestCase reportTestCase : parsedReport.getTestCases())
                     {
-                        String name = parsedReport.getFullClassName();
                         String failureDetail = reportTestCase.getFailureDetail();
                         if (failureDetail != null)
                         {
+                            logger.debug("Case Status: FAILED: " + failureDetail);
                             String[] failureTokens = failureDetail.split("\n");
-                            final String specIdentifier = getSpecIdentifier(currentPackageName, name);
                             boolean ignored = excludeSpecs.contains(specIdentifier);
+                            if(ignored)
+                                logger.debug("Case Status: FAILED (ignored by excludeSpec): " + failureDetail);
+                            else
+                                logger.debug("Case Status: FAILED: " + failureDetail);
 
                             String expected = failureTokens.length > 0 ? failureTokens[0] : "";
                             String actual = failureTokens.length > 1 ? failureTokens[1] : "";
                             failures.add(new Failure(name, currentPackageName, actual, expected, ignored));
+                        }
+                        else
+                        {
+                            logger.debug("Case Status: SUCCESS");
                         }
                     }
                 }
