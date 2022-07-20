@@ -53,16 +53,18 @@ public class H2SpecTestSuite
                         String failureDetail = reportTestCase.getFailureDetail();
                         if (failureDetail != null)
                         {
-                            logger.debug("Case Status: FAILED: " + failureDetail);
                             String[] failureTokens = failureDetail.split("\n");
                             boolean ignored = excludeSpecs.contains(specIdentifier);
                             if(ignored)
-                                logger.debug("Case Status: FAILED (ignored by excludeSpec): " + failureDetail);
+                                logger.debug("Case Status: FAILED [" + specIdentifier + "] (ignored by excludeSpec): " + failureDetail);
                             else
-                                logger.debug("Case Status: FAILED: " + failureDetail);
+                                logger.debug("Case Status: FAILED: [" + specIdentifier + "] " + failureDetail);
 
                             String expected = failureTokens.length > 0 ? failureTokens[0] : "";
-                            String actual = failureTokens.length > 1 ? failureTokens[1] : "";
+                            String actual = "";
+                            int last = failureTokens.length-1;
+                            if(last > 0)
+                                actual = failureTokens[last];
                             failures.add(new Failure(name, currentPackageName, actual, expected, ignored));
                         }
                         else
