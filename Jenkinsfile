@@ -12,7 +12,7 @@ pipeline {
     stage( "Parallel Stage" ) {
       parallel {
         stage( "Build / Test - JDK8" ) {
-          agent { node { label 'linux' } }
+          agent { node { label 'linux-new' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             container('jetty-build') {
@@ -34,7 +34,7 @@ pipeline {
           }
         }
         stage( "Build / Test - JDK11" ) {
-          agent { node { label 'linux' } }
+          agent { node { label 'linux-new' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             container('jetty-build') {
@@ -43,7 +43,7 @@ pipeline {
           }
         }
         stage( "Build / Test - JDK17" ) {
-          agent { node { label 'linux' } }
+          agent { node { label 'linux-new' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             container('jetty-build') {
