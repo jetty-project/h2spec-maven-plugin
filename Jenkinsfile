@@ -15,40 +15,34 @@ pipeline {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            //container('jetty-build') {
-              mavenBuild( "jdk8", "clean install javadoc:jar" )
-              // Collect up the jacoco execution results
-              jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                     exclusionPattern: '',
-                     execPattern: '**/target/jacoco.exec',
-                     classPattern: '**/target/classes',
-                     sourcePattern: '**/src/main/java'
-              recordIssues id: "jdk8", name: "Static Analysis jdk8", aggregatingResults: true, enabledForFailure: true, tools: [mavenConsole(), java(), checkStyle(), spotBugs(), pmdParser(), errorProne()]
-              script {
-                if ( env.BRANCH_NAME == 'master' )
-                {
-                  mavenBuild( "jdk8", "deploy" )
-                }
+            mavenBuild( "jdk8", "clean install javadoc:jar" )
+            // Collect up the jacoco execution results
+            jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
+                   exclusionPattern: '',
+                   execPattern: '**/target/jacoco.exec',
+                   classPattern: '**/target/classes',
+                   sourcePattern: '**/src/main/java'
+            recordIssues id: "jdk8", name: "Static Analysis jdk8", aggregatingResults: true, enabledForFailure: true, tools: [mavenConsole(), java(), checkStyle(), spotBugs(), pmdParser(), errorProne()]
+            script {
+              if ( env.BRANCH_NAME == 'master' )
+              {
+                mavenBuild( "jdk8", "deploy" )
               }
-            //}
+            }
           }
         }
         stage( "Build / Test - JDK11" ) {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            //container('jetty-build') {
-              mavenBuild( "jdk11", "clean install javadoc:jar" )
-            //}
+            mavenBuild( "jdk11", "clean install javadoc:jar" )
           }
         }
         stage( "Build / Test - JDK17" ) {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            //container('jetty-build') {
-              mavenBuild( "jdk17", "clean install javadoc:jar" )
-            //}
+            mavenBuild( "jdk17", "clean install javadoc:jar" )
           }
         }
       }
