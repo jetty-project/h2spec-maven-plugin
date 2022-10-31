@@ -15,7 +15,7 @@ pipeline {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            container('jetty-build') {
+            //container('jetty-build') {
               mavenBuild( "jdk8", "clean install javadoc:jar" )
               // Collect up the jacoco execution results
               jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
@@ -30,25 +30,25 @@ pipeline {
                   mavenBuild( "jdk8", "deploy" )
                 }
               }
-            }
+            //}
           }
         }
         stage( "Build / Test - JDK11" ) {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            container('jetty-build') {
+            //container('jetty-build') {
               mavenBuild( "jdk11", "clean install javadoc:jar" )
-            }
+            //}
           }
         }
         stage( "Build / Test - JDK17" ) {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            container('jetty-build') {
+            //container('jetty-build') {
               mavenBuild( "jdk17", "clean install javadoc:jar" )
-            }
+            //}
           }
         }
       }
