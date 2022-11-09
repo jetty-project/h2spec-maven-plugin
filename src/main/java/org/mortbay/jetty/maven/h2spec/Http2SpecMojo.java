@@ -156,6 +156,9 @@ public class Http2SpecMojo extends AbstractMojo
     @Parameter(property = "h2spec.totalTestTimeout", defaultValue = "5")
     private int totalTestTimeout = 5;
 
+    @Parameter(property = "h2spec.targetHost", defaultValue = "host.testcontainers.internal")
+    private String targetHost = "host.testcontainers.internal";
+
     @SuppressWarnings("unchecked")
     private ClassLoader getClassLoader() throws MojoExecutionException
     {
@@ -312,8 +315,10 @@ public class Http2SpecMojo extends AbstractMojo
                 File junitFile = new File(reportsDirectory, junitFileName);
                 //junitFile.createNewFile();
                 String imageName = h2specContainerName + ":" + h2specVersion;
+                String runningHost = StringUtils.isEmpty(targetHost)?"host.testcontainers.internal":targetHost;
+                getLog().info("using host:" + runningHost);
                 String command = String.format( "-h %s -p %d -j %s -o %d --max-header-length %d",
-                                                "host.testcontainers.internal",
+                                                runningHost,
                                                 port,
                                                 "/foo/junit.xml",
                                                 timeout,

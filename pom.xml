@@ -59,6 +59,7 @@
     <h2specContainerName>summerwind/h2spec</h2specContainerName>
     <h2specVersion>2.6.0</h2specVersion>
     <jetty.version>9.4.31.v20200723</jetty.version>
+    <h2.targetHost></h2.targetHost>
   </properties>
 
   <dependencies>

@@ -15,7 +15,6 @@ pipeline {
           agent { node { label 'linux-no-docker' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
-            sh "echo $POD_IP"
             mavenBuild( "jdk8", "clean install javadoc:jar" )
             // Collect up the jacoco execution results
             jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
@@ -68,7 +67,7 @@ def mavenBuild(jdk, cmdline) {
                "MAVEN_OPTS=-Xms2g -Xmx4g -Djava.awt.headless=true"]) {
         configFileProvider(
                 [configFile(fileId: 'oss-settings.xml', variable: 'GLOBAL_MVN_SETTINGS')]) {
-          sh "mvn --no-transfer-progress -s $GLOBAL_MVN_SETTINGS -Pci -V -B -e $cmdline"
+          sh "mvn --no-transfer-progress -s $GLOBAL_MVN_SETTINGS -Dh2.targetHost=$POD_IP -Pci -V -B -e $cmdline"
         }
       }
     }
