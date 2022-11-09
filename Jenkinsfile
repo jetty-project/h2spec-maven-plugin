@@ -15,6 +15,7 @@ pipeline {
           agent { node { label 'linux-no-docker' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
+            sh "echo $POD_IP"
             mavenBuild( "jdk8", "clean install javadoc:jar" )
             // Collect up the jacoco execution results
             jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
