@@ -316,7 +316,7 @@ public class Http2SpecMojo extends AbstractMojo
                 //junitFile.createNewFile();
                 String imageName = h2specContainerName + ":" + h2specVersion;
                 String runningHost = StringUtils.isEmpty(targetHost)?"host.testcontainers.internal":targetHost;
-                getLog().info("using host:" + runningHost);
+                getLog().info("using target host:" + runningHost);
                 String command = String.format( "-h %s -p %d -j %s -o %d --max-header-length %d",
                                                 runningHost,
                                                 port,

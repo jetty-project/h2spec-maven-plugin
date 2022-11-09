@@ -181,6 +181,9 @@
           </goals>
           <settingsFile>${settingsPath}</settingsFile>
           <mergeUserSettings>true</mergeUserSettings>
+          <properties>
+            <h2spec.targetHost>${h2.targetHost}</h2spec.targetHost>
+          </properties>
         </configuration>
       </plugin>
     </plugins>
