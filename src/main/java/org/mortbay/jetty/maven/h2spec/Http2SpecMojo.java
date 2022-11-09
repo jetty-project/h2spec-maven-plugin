@@ -333,7 +333,7 @@ public class Http2SpecMojo extends AbstractMojo
                 if(Files.exists(containerTmp)) {
                     FileUtils.deleteDirectory( containerTmp.toFile() );
                 }
-                Files.createDirectories( containerTmp );
+                Files.createDirectories(containerTmp);
                 DockerImageName dockerImageName = DockerImageName.parse(imageName);
                 try (GenericContainer h2spec = new GenericContainer(dockerImageName))
                 {
@@ -368,6 +368,7 @@ public class Http2SpecMojo extends AbstractMojo
                             return StartupStatus.NOT_YET_KNOWN;
                         }
                     });
+                    h2spec.withAccessToHost(true);
                     h2spec.withWorkingDirectory("/foo");
                     h2spec.withCommand(command);
                     h2spec.withFileSystemBind( containerTmp.toString(), "/foo", BindMode.READ_WRITE );
