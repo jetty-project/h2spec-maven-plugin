@@ -12,7 +12,7 @@ pipeline {
     stage( "Parallel Stage" ) {
       parallel {
         stage( "Build / Test - JDK8" ) {
-          agent { node { label 'linux-node-docker' } }
+          agent { node { label 'linux-no-docker' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             mavenBuild( "jdk8", "clean install javadoc:jar" )
@@ -32,14 +32,14 @@ pipeline {
           }
         }
         stage( "Build / Test - JDK11" ) {
-          agent { node { label 'linux-node-docker' } }
+          agent { node { label 'linux-no-docker' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             mavenBuild( "jdk11", "clean install javadoc:jar" )
           }
         }
         stage( "Build / Test - JDK17" ) {
-          agent { node { label 'linux-node-docker' } }
+          agent { node { label 'linux-no-docker' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             mavenBuild( "jdk17", "clean install javadoc:jar" )
