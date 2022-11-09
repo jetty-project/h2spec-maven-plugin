@@ -372,7 +372,8 @@ public class Http2SpecMojo extends AbstractMojo
                             // still no file so we declare this not ready yet
                             return StartupStatus.NOT_YET_KNOWN;
                         }
-                    });
+
+                    }.withTimeout(Duration.ofMinutes(totalTestTimeout)));
                     h2spec.withAccessToHost(true);
                     h2spec.withWorkingDirectory("/foo");
                     h2spec.withCommand(command);
