@@ -342,7 +342,7 @@ public class Http2SpecMojo extends AbstractMojo
                     //                           .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
                     h2spec.setWaitStrategy( new LogMessageWaitStrategy().withRegEx(".*Finished in.*")
                                                 .withStartupTimeout(Duration.ofMinutes( totalTestTimeout)) );
-                    h2spec.setPortBindings(Arrays.asList(Integer.toString(port)));
+                    h2spec.setPortBindings(Collections.singletonList(Integer.toString(port)));
 
                     // we simply declare it as started once we get the file
                     h2spec.withStartupCheckStrategy(new StartupCheckStrategy()
@@ -391,7 +391,7 @@ public class Http2SpecMojo extends AbstractMojo
                     }
                 });
 
-                if (nonIgnoredFailures.size() > 0)
+                if (!nonIgnoredFailures.isEmpty())
                 {
                     StringBuilder sb = new StringBuilder("\nFailed test cases:\n");
                     nonIgnoredFailures.forEach(failure -> sb.append("\t").append(failure.toString()).append("\n\n"));
