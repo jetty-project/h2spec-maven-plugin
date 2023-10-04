@@ -1,12 +1,13 @@
 #!groovy
 
 pipeline {
-  agent any
+  agent none
   options {
     disableConcurrentBuilds()
     durabilityHint('PERFORMANCE_OPTIMIZED')
     buildDiscarder(logRotator(numToKeepStr: '10', artifactNumToKeepStr: '5'))
     timeout(time: 15, unit: 'MINUTES')
+    skipDefaultCheckout()
   }
   stages {
     stage( "Parallel Stage" ) {
@@ -15,6 +16,7 @@ pipeline {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
+            checkout scm
             mavenBuild( "jdk8", "clean install javadoc:jar" )
             // Collect up the jacoco execution results
             jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
@@ -35,6 +37,7 @@ pipeline {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
+            checkout scm
             mavenBuild( "jdk17", "clean install javadoc:jar" )
           }
         }
@@ -42,6 +45,7 @@ pipeline {
           agent { node { label 'linux' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
+            checkout scm
             mavenBuild( "jdk21", "clean install javadoc:jar" )
           }
         }
