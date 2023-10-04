@@ -335,7 +335,7 @@ public class Http2SpecMojo extends AbstractMojo
                 }
                 Files.createDirectories( containerTmp );
                 DockerImageName dockerImageName = DockerImageName.parse(imageName);
-                try (GenericContainer h2spec = new GenericContainer(dockerImageName))
+                try (GenericContainer<?> h2spec = new GenericContainer<>(dockerImageName))
                 {
                     h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
                     //h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")

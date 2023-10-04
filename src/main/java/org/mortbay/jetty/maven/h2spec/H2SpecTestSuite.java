@@ -41,7 +41,7 @@ public class H2SpecTestSuite
                 logger.debug("Spec Identifier [" + specIdentifier + "]");
 
                 String packageName = parsedReport.getPackageName();
-                if (packageName.length() > 0)
+                if (!packageName.isEmpty())
                 {
                     currentPackageName = packageName;
                 }
