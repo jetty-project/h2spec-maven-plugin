@@ -152,6 +152,12 @@ public class Http2SpecMojo extends AbstractMojo {
     private boolean skipNoDockerAvailable;
 
     /**
+     * per default log output of testcontainer will displayed as debug log if {@code true} logs will displayed as info
+     */
+    @Parameter(property = "h2spec.displayh2SpecOuutputAsInfo", defaultValue = "false")
+    private boolean displayh2SpecOutputAsInfo = false;
+
+    /**
      * maximum timeout in minutes to run all the tests
      */
     @Parameter(property = "h2spec.totalTestTimeout", defaultValue = "5")
@@ -301,7 +307,7 @@ public class Http2SpecMojo extends AbstractMojo {
                 Files.createDirectories(containerTmp);
                 DockerImageName dockerImageName = DockerImageName.parse(imageName);
                 try (GenericContainer<?> h2spec = new GenericContainer<>(dockerImageName)) {
-                    h2spec.withLogConsumer(new MojoLogConsumer(getLog()));
+                    h2spec.withLogConsumer(new MojoLogConsumer(getLog(), displayh2SpecOutputAsInfo));
                     // h2spec.setWaitStrategy(new LogMessageWaitStrategy(totalTestTimeout).withStartLine("Finished in ")
                     //                           .withStartupTimeout(Duration.ofMinutes(totalTestTimeout)));
                     h2spec.setWaitStrategy(new LogMessageWaitStrategy()
@@ -375,15 +381,21 @@ public class Http2SpecMojo extends AbstractMojo {
 
     private static class MojoLogConsumer extends ToStringConsumer {
         private Log log;
+        private boolean displayh2SpecOutputAsInfo;
 
-        public MojoLogConsumer(Log log) {
+        public MojoLogConsumer(Log log, boolean displayh2SpecOutputAsInfo) {
             this.log = log;
+            this.displayh2SpecOutputAsInfo = displayh2SpecOutputAsInfo;
         }
 
         @Override
         public void accept(OutputFrame outputFrame) {
             super.accept(outputFrame);
-            log.info(toUtf8String());
+            if (displayh2SpecOutputAsInfo) {
+                log.info(toUtf8String());
+            } else {
+                log.debug(outputFrame.toString());
+            }
         }
     }
 
