@@ -177,35 +177,30 @@
         <version>2.41.1</version>
         <configuration>
           <java>
-            <endWithNewline></endWithNewline>
-            <importOrder></importOrder>
+            <endWithNewline />
+            <importOrder />
             <indent>
               <spaces>true</spaces>
             </indent>
-            <palantirJavaFormat></palantirJavaFormat>
-            <removeUnusedImports></removeUnusedImports>
-            <trimTrailingWhitespace></trimTrailingWhitespace>
+            <palantirJavaFormat />
+            <removeUnusedImports />
+            <trimTrailingWhitespace />
           </java>
           <pom>
             <includes>
               <include>pom.xml</include>
             </includes>
             <sortPom>
+              <expandEmptyElements>false</expandEmptyElements>
               <nrOfIndentSpace>2</nrOfIndentSpace>
-              <!-- default see https://github.com/Ekryd/sortpom/wiki/PredefinedSortOrderProfiles -->
               <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
-              <!-- Sort properties -->
-              <sortProperties>true</sortProperties>
-              <!-- Sort modules -->
-              <!--              <sortModules>true</sortModules>-->
-              <!-- Sort plugin executions -->
-              <sortExecutions>true</sortExecutions>
-              <!-- Sort dependencies see https://github.com/Ekryd/sortpom/wiki/SortDependencies -->
               <sortDependencies>scope,groupId,artifactId</sortDependencies>
-              <!-- Sort dependency exclusions -->
               <sortDependencyExclusions>groupId,artifactId</sortDependencyExclusions>
-              <!-- Sort plugins: https://github.com/Ekryd/sortpom/wiki/SortPlugins -->
+              <sortExecutions>true</sortExecutions>
+              <sortModules>false</sortModules>
               <sortPlugins>groupId,artifactId</sortPlugins>
+              <sortProperties>true</sortProperties>
+              <spaceBeforeCloseEmptyElement>true</spaceBeforeCloseEmptyElement>
             </sortPom>
           </pom>
           <upToDateChecking>
