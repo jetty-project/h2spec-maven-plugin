@@ -1,15 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mortbay.jetty</groupId>
   <artifactId>h2spec-maven-plugin</artifactId>
-  <packaging>maven-plugin</packaging>
   <version>1.0.12-SNAPSHOT</version>
+  <packaging>maven-plugin</packaging>
 
   <name>h2spec-maven-plugin Maven Mojo</name>
+  <description>Maven plugin which allows to run h2spec test suite as part of the build.</description>
   <url>https://github.com/jetty-project/h2spec-maven-plugin</url>
-  <description>
-    Maven plugin which allows to run h2spec test suite as part of the build.
-  </description>
+  <inceptionYear>2017</inceptionYear>
 
   <licenses>
     <license>
@@ -17,14 +17,6 @@
       <url>http://www.apache.org/licenses/LICENSE-2.0</url>
     </license>
   </licenses>
-  <inceptionYear>2017</inceptionYear>
-
-  <scm>
-    <url>https://github.com/jetty-project/h2spec-maven-plugin</url>
-    <connection>scm:git:git://github.com/jetty-project/h2spec-maven-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jetty-project/h2spec-maven-plugin.git</developerConnection>
-    <tag>HEAD</tag>
-  </scm>
 
   <developers>
     <developer>
@@ -38,6 +30,13 @@
       <email>olamy@apache.org</email>
     </developer>
   </developers>
+
+  <scm>
+    <connection>scm:git:git://github.com/jetty-project/h2spec-maven-plugin.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com/jetty-project/h2spec-maven-plugin.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/jetty-project/h2spec-maven-plugin</url>
+  </scm>
 
   <distributionManagement>
     <repository>
@@ -53,15 +52,41 @@
   </distributionManagement>
 
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
     <h2specContainerName>summerwind/h2spec</h2specContainerName>
     <h2specVersion>2.6.0</h2specVersion>
     <jetty.version>9.4.31.v20200723</jetty.version>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.13.2</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven.surefire</groupId>
+      <artifactId>surefire-report-parser</artifactId>
+      <version>2.19</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.plexus</groupId>
+      <artifactId>plexus-utils</artifactId>
+      <version>3.5.1</version>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <version>1.19.8</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-artifact</artifactId>
+      <version>2.2.1</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
       <artifactId>maven-plugin-api</artifactId>
@@ -70,7 +95,7 @@
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
-      <artifactId>maven-artifact</artifactId>
+      <artifactId>maven-project</artifactId>
       <version>2.2.1</version>
       <scope>provided</scope>
     </dependency>
@@ -81,32 +106,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-project</artifactId>
-      <version>2.2.1</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.maven.surefire</groupId>
-      <artifactId>surefire-report-parser</artifactId>
-      <version>2.19</version>
-    </dependency>
-    <dependency>
-      <groupId>org.testcontainers</groupId>
-      <artifactId>testcontainers</artifactId>
-      <version>1.19.8</version>
-    </dependency>
-    <dependency>
-      <groupId>org.codehaus.plexus</groupId>
-      <artifactId>plexus-utils</artifactId>
-      <version>3.5.1</version>
-    </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.13.2</version>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-simple</artifactId>
       <version>1.7.36</version>
@@ -115,18 +114,138 @@
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-clean-plugin</artifactId>
+          <version>3.3.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.13.0</version>
+          <configuration>
+            <source>8</source>
+            <target>8</target>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-deploy-plugin</artifactId>
+          <version>3.0.0-M2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-gpg-plugin</artifactId>
+          <version>3.1.0</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-install-plugin</artifactId>
+          <version>3.1.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.2.2</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>3.6.0</version>
+          <configuration>
+            <detectJavaApiLink>false</detectJavaApiLink>
+          </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>3.3.1</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>3.0.0-M6</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.5.3</version>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>2.41.1</version>
         <configuration>
-          <useReleaseProfile>false</useReleaseProfile>
-          <goals>deploy</goals>
-          <arguments>-Peclipse-release</arguments>
-          <preparationGoals>clean install</preparationGoals>
-          <mavenExecutorId>forked-path</mavenExecutorId>
+          <java>
+            <endWithNewline></endWithNewline>
+            <importOrder></importOrder>
+            <indent>
+              <spaces>true</spaces>
+            </indent>
+            <palantirJavaFormat></palantirJavaFormat>
+            <removeUnusedImports></removeUnusedImports>
+            <trimTrailingWhitespace></trimTrailingWhitespace>
+          </java>
+          <pom>
+            <includes>
+              <include>pom.xml</include>
+            </includes>
+            <sortPom>
+              <nrOfIndentSpace>2</nrOfIndentSpace>
+              <!-- default see https://github.com/Ekryd/sortpom/wiki/PredefinedSortOrderProfiles -->
+              <predefinedSortOrder>recommended_2008_06</predefinedSortOrder>
+              <!-- Sort properties -->
+              <sortProperties>true</sortProperties>
+              <!-- Sort modules -->
+              <!--              <sortModules>true</sortModules>-->
+              <!-- Sort plugin executions -->
+              <sortExecutions>true</sortExecutions>
+              <!-- Sort dependencies see https://github.com/Ekryd/sortpom/wiki/SortDependencies -->
+              <sortDependencies>scope,groupId,artifactId</sortDependencies>
+              <!-- Sort dependency exclusions -->
+              <sortDependencyExclusions>groupId,artifactId</sortDependencyExclusions>
+              <!-- Sort plugins: https://github.com/Ekryd/sortpom/wiki/SortPlugins -->
+              <sortPlugins>groupId,artifactId</sortPlugins>
+            </sortPom>
+          </pom>
+          <upToDateChecking>
+            <enabled>true</enabled>
+          </upToDateChecking>
         </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-invoker-plugin</artifactId>
+        <version>3.6.0</version>
+        <configuration>
+          <streamLogs>true</streamLogs>
+          <skipInvocation>${skipTests}</skipInvocation>
+          <addTestClassPath>false</addTestClassPath>
+          <goals>
+            <goal>clean</goal>
+          </goals>
+          <settingsFile>${settingsPath}</settingsFile>
+          <mergeUserSettings>true</mergeUserSettings>
+        </configuration>
+        <executions>
+          <execution>
+            <id>integration-test</id>
+            <goals>
+              <goal>install</goal>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+            <phase>integration-test</phase>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>
@@ -148,6 +267,18 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.5.3</version>
+        <configuration>
+          <useReleaseProfile>false</useReleaseProfile>
+          <goals>deploy</goals>
+          <arguments>-Peclipse-release</arguments>
+          <preparationGoals>clean install</preparationGoals>
+          <mavenExecutorId>forked-path</mavenExecutorId>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
         <version>3.3.0</version>
         <executions>
@@ -159,89 +290,7 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-invoker-plugin</artifactId>
-        <version>3.6.0</version>
-        <executions>
-          <execution>
-            <id>integration-test</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>install</goal>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <streamLogs>true</streamLogs>
-          <skipInvocation>${skipTests}</skipInvocation>
-          <addTestClassPath>false</addTestClassPath>
-          <goals>
-            <goal>clean</goal>
-          </goals>
-          <settingsFile>${settingsPath}</settingsFile>
-          <mergeUserSettings>true</mergeUserSettings>
-        </configuration>
-      </plugin>
     </plugins>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-clean-plugin</artifactId>
-          <version>3.3.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M6</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-resources-plugin</artifactId>
-          <version>3.3.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-install-plugin</artifactId>
-          <version>3.1.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-deploy-plugin</artifactId>
-          <version>3.0.0-M2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.6.0</version>
-          <configuration>
-            <detectJavaApiLink>false</detectJavaApiLink>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.13.0</version>
-          <configuration>
-            <source>8</source>
-            <target>8</target>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-gpg-plugin</artifactId>
-          <version>3.1.0</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <profiles>
@@ -250,19 +299,20 @@
       <build>
         <plugins>
           <plugin>
-            <inherited>true</inherited>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-deploy-plugin</artifactId>
+            <inherited>true</inherited>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
+            <artifactId>maven-gpg-plugin</artifactId>
             <executions>
               <execution>
-                <id>attach-sources</id>
+                <id>sign-artifacts</id>
                 <goals>
-                  <goal>jar</goal>
+                  <goal>sign</goal>
                 </goals>
+                <phase>verify</phase>
               </execution>
             </executions>
           </plugin>
@@ -280,13 +330,12 @@
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-gpg-plugin</artifactId>
+            <artifactId>maven-source-plugin</artifactId>
             <executions>
               <execution>
-                <id>sign-artifacts</id>
-                <phase>verify</phase>
+                <id>attach-sources</id>
                 <goals>
-                  <goal>sign</goal>
+                  <goal>jar</goal>
                 </goals>
               </execution>
             </executions>
@@ -297,15 +346,15 @@
     <profile>
       <id>ci</id>
       <properties>
-        <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
         <settingsPath>${env.GLOBAL_MVN_SETTINGS}</settingsPath>
-        <spotbugs.failOnError>false</spotbugs.failOnError>
-        <!-- Defines a SpotBugs threshold. Use "Low" to discover low-priority bugs -->
-        <spotbugs.threshold>Medium</spotbugs.threshold>
         <!-- Defines a SpotBugs effort. Use "Max" to maximize the scan depth -->
         <spotbugs.effort>Default</spotbugs.effort>
-        <spotbugs.skip>false</spotbugs.skip>
+        <spotbugs.failOnError>false</spotbugs.failOnError>
         <spotbugs.onlyAnalyze>org.mortbay.jetty.maven.h2spec.*</spotbugs.onlyAnalyze>
+        <spotbugs.skip>false</spotbugs.skip>
+        <!-- Defines a SpotBugs threshold. Use "Low" to discover low-priority bugs -->
+        <spotbugs.threshold>Medium</spotbugs.threshold>
+        <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
       </properties>
       <build>
         <pluginManagement>
