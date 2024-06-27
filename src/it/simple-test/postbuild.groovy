@@ -19,6 +19,7 @@
 import groovy.xml.XmlSlurper
 File buildLog = new File( basedir, 'build.log' )
 assert buildLog.text.contains( 'Container summerwind/h2spec' )
+assert buildLog.text.contains( '1: Sends a WINDOW_UPDATE frame with a flow control window increment of 0')
 File surefireFile = new File(basedir, "target/h2spec-reports/TEST-h2spec.xml")
 assert surefireFile.exists()
 def report = new XmlSlurper().parse(surefireFile)

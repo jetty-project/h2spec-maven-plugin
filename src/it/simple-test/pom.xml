@@ -18,8 +18,8 @@
           <artifactId>maven-compiler-plugin</artifactId>
           <version>3.11.0</version>
           <configuration>
-            <source>8</source>
-            <target>8</target>
+            <source>11</source>
+            <target>11</target>
           </configuration>
         </plugin>
       </plugins>
@@ -30,6 +30,7 @@
         <artifactId>h2spec-maven-plugin</artifactId>
         <version>@project.version@</version>
         <configuration>
+          <displayh2SpecOutputAsInfo>true</displayh2SpecOutputAsInfo>
           <h2specVersion>@h2specVersion@</h2specVersion>
           <h2specContainerName>@h2specContainerName@</h2specContainerName>
           <mainClass>org.eclipse.jetty.http2.server.H2SpecServer</mainClass>
