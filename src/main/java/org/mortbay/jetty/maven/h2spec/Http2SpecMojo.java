@@ -136,7 +136,7 @@ public class Http2SpecMojo extends AbstractMojo {
     @Parameter(property = "h2spec.version", defaultValue = DEFAULT_VERSION)
     private String h2specVersion;
 
-    @Parameter(property = "h2spec.containerName", defaultValue = "summerwind/h2spec")
+    @Parameter(property = "h2spec.containerName", defaultValue = "olamy/h2spec")
     private String h2specContainerName;
 
     @Parameter(defaultValue = "${project}", readonly = true)
