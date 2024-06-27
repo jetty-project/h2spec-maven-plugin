@@ -116,6 +116,11 @@
     <pluginManagement>
       <plugins>
         <plugin>
+          <groupId>com.github.spotbugs</groupId>
+          <artifactId>spotbugs-maven-plugin</artifactId>
+          <version>4.8.3.0</version>
+        </plugin>
+        <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
           <version>3.3.2</version>
@@ -267,19 +272,6 @@
           <mavenExecutorId>forked-path</mavenExecutorId>
         </configuration>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>3.3.0</version>
-        <executions>
-          <execution>
-            <id>attach-sources</id>
-            <goals>
-              <goal>jar-no-fork</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
     </plugins>
   </build>
 
@@ -347,15 +339,6 @@
         <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
       </properties>
       <build>
-        <pluginManagement>
-          <plugins>
-            <plugin>
-              <groupId>com.github.spotbugs</groupId>
-              <artifactId>spotbugs-maven-plugin</artifactId>
-              <version>4.8.3.0</version>
-            </plugin>
-          </plugins>
-        </pluginManagement>
         <plugins>
           <plugin>
             <groupId>com.github.spotbugs</groupId>
