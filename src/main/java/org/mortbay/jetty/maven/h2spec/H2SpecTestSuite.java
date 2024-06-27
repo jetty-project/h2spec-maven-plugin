@@ -14,7 +14,7 @@ import org.apache.maven.reporting.MavenReportException;
 
 public class H2SpecTestSuite {
 
-    public static final String DEFAULT_VERSION = "2.6.0";
+    public static final String DEFAULT_VERSION = "2.6.1";
 
     public static String getSpecIdentifier(String specId, String name) {
         return specId + " - " + name;
