@@ -17,17 +17,17 @@ pipeline {
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             checkout scm
-            mavenBuild( "jdk8", "clean install javadoc:jar" )
+            mavenBuild( "jdk11", "clean install javadoc:jar" )
             // Collect up the jacoco execution results
             recordCoverage name: "Coverage", id: "coverage", tools: [[parser: 'JACOCO']], sourceCodeRetention: 'MODIFIED',
                     sourceDirectories: [[path: 'src/main/java']]
-            recordIssues id: "jdk11", name: "Static Analysis jdk8", aggregatingResults: true, enabledForFailure: true,
+            recordIssues id: "jdk11", name: "Static Analysis jdk11", aggregatingResults: true, enabledForFailure: true,
                          tools: [mavenConsole(), java(), checkStyle(), spotBugs(), pmdParser(), errorProne()]
             script {
 
               if ( env.BRANCH_NAME == 'master' )
               {
-                mavenBuild( "jdk8", "deploy" )
+                mavenBuild( "jdk11", "deploy" )
               }
             }
           }
