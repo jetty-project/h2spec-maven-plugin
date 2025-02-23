@@ -13,19 +13,18 @@ pipeline {
     stage( "Parallel Stage" ) {
       parallel {
         stage( "Build / Test - JDK11" ) {
-          agent { node { label 'linux' } }
+          agent { node { label 'linux-light' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             checkout scm
             mavenBuild( "jdk8", "clean install javadoc:jar" )
             // Collect up the jacoco execution results
-            jacoco inclusionPattern: '**/org/eclipse/jetty/**/*.class',
-                   exclusionPattern: '',
-                   execPattern: '**/target/jacoco.exec',
-                   classPattern: '**/target/classes',
-                   sourcePattern: '**/src/main/java'
-            recordIssues id: "jdk11", name: "Static Analysis jdk8", aggregatingResults: true, enabledForFailure: true, tools: [mavenConsole(), java(), checkStyle(), spotBugs(), pmdParser(), errorProne()]
+            recordCoverage name: "Coverage", id: "coverage", tools: [[parser: 'JACOCO']], sourceCodeRetention: 'MODIFIED',
+                    sourceDirectories: [[path: 'src/main/java']]
+            recordIssues id: "jdk11", name: "Static Analysis jdk8", aggregatingResults: true, enabledForFailure: true,
+                         tools: [mavenConsole(), java(), checkStyle(), spotBugs(), pmdParser(), errorProne()]
             script {
+
               if ( env.BRANCH_NAME == 'master' )
               {
                 mavenBuild( "jdk8", "deploy" )
@@ -34,7 +33,7 @@ pipeline {
           }
         }
         stage( "Build / Test - JDK17" ) {
-          agent { node { label 'linux' } }
+          agent { node { label 'linux-light' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             checkout scm
@@ -42,7 +41,7 @@ pipeline {
           }
         }
         stage( "Build / Test - JDK21" ) {
-          agent { node { label 'linux' } }
+          agent { node { label 'linux-light' } }
           options { timeout( time: 120, unit: 'MINUTES' ) }
           steps {
             checkout scm
